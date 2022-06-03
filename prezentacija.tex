@@ -1,0 +1,1282 @@
+\documentclass[bookmarks=true,bookmarksopen=true,pdfborder={0 0 0},pdfhighlight={/N},linkbordercolor={.5 .5 .5},implicit=false,unicode,xcolor={table}]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage[english,serbian]{babel}
+
+%\usepackage[unicode]{hyperref}
+
+\mode<presentation>
+\setbeamercovered{transparent}
+\setbeamertemplate{navigation symbols}{}
+
+\usetheme{Frankfurt}
+\usecolortheme{beaver}
+
+\usepackage{color}
+%\usepackage[table]{xcolor}
+\usepackage{url}
+
+\usepackage{graphicx}
+\usepackage{xspace}
+\usepackage{fancyvrb}
+\usepackage{listings}
+
+
+\graphicspath{ {./Slike/} }
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ 
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  basicstyle=\scriptsize\ttfamily,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  firstnumber=1,                % start line enumeration with line 1000
+  frame=single,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=C,                      % the language of the code
+  morekeywords={*,...},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},       % string literal style
+  tabsize=2,	                   % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+\setbeamertemplate{itemize item}[circle]
+\setbeamertemplate{itemize subitem}[square]
+
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
+
+
+\begin{document}
+\title{Model kamere}
+\author{Momir Adžemović\\ \small{momir.adzemovic@gmail.com}}
+\subtitle{Računarski vid}
+\institute{Istraživačka stanica Petnica}
+\date{}
+
+\begin{frame}
+
+  \titlepage{}
+
+\end{frame}
+
+\begin{frame}{O meni}
+
+  \begin{itemize}
+    \item Saradnik u nastavi i master student na Matematičkom fakultetu u Beogradu
+    \item Istraživač u oblasti mašinskog učenja u Everseen-u u Beogradu
+  \end{itemize}
+
+  \begin{figure}
+		\begin{subfigure}{3cm}
+			\includegraphics[width=3cm,height=3cm]{images/matf.png}
+		\end{subfigure}
+    \hfill
+		\begin{subfigure}{3cm}
+			\includegraphics[width=3cm,height=3cm]{images/everseen.jpeg}
+		\end{subfigure}
+	\end{figure}
+  \hfill
+
+\end{frame}
+
+\begin{frame}{Računarski vid}
+
+Računarski vid (\textit{eng. Computer Vision}) je ,,automatizovani`` proces izvlačenja informacija iz slika.
+\begin{itemize}
+  \item Pozicija i orijentacija kamere
+  \item Uklananje distorzije sa slika
+  \item Detekcija objekata
+  \item Prepoznavanje objekata
+  \item Estimacija dubine/udaljenosti na slikama
+\end{itemize}
+
+\begin{figure}
+		
+  \begin{subfigure}{4cm}
+    \includegraphics[width=4cm,height=3cm]{images/cv_object_detection.png}
+  \end{subfigure}
+  \begin{subfigure}{4cm}
+    \includegraphics[width=4cm,height=3cm]{images/cv_depth_estimation.jpeg}
+  \end{subfigure}
+  \begin{subfigure}{2cm}
+    \includegraphics[width=2cm,height=4cm]{images/cv_instance_segmentation.png}
+  \end{subfigure}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Kako funkcioniše kamera? }
+  
+  Neophodno je da poznajemo neke osnovne pojmove iz linearne algebre i analitičke geometrije.
+  \begin{itemize}
+    \item Vektori i matrice
+    \item Koordinatni sistem
+    \item Afine i projektivne transformacije
+  \end{itemize}
+
+  \begin{figure}
+    \begin{subfigure}{3cm}
+      \includegraphics[width=3cm,height=3cm]{images/camera_classic.png}
+    \end{subfigure}
+    \begin{subfigure}{3cm}
+      \includegraphics[width=3cm,height=3cm]{images/camera_bullet.jpg}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\section{Osnove analitičke geometrije}
+\begin{frame}{Vektori}
+  
+  \begin{itemize}
+    \item \textbf{Vektor} je klasa ekvivalencije usmerenih duži. Svaka klasa ekvivalencije je određena pravcem, smerom i intenzitetom
+    \item U ovom slučaju je dovoljno da vektor posmatramo kao niz skalara (vrednosti), a sama formalna definicija nam nije neophodna
+    \item Primeri:
+      \begin{itemize}
+        \item (2, 3)
+        \item (1.3, 10.3)
+        \item (13, 10, 2)
+        \item (1, 1, 1, 1, ..., 1)
+        \item (-2, 3)
+      \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Vektori - Osnovne operacije i pojmovi}
+  
+  \begin{itemize}
+    \item Sabiranje: $(2, 3) + (1, 1) = (3, 4)$
+    \item Oduzimanje: $(2, 3) - (1, 1) = (1, 2)$
+    \item Množenje skalarom: $5 * (2, 3) = (10, 15)$
+    \item Nula vektor: $(0, 0)$ (neutral za sabiranje i oduzimanje)
+    \item Skalarni proizvod: $(2, 3) \cdot (4, 2) = 2*4 + 3*2 = 14$
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Tačke}
+
+  \begin{itemize}
+    \item Tačke (koordinate) u ravni (2D) i prostoru (3D) možemo da predstavljamo vektorima
+    \item Da li nam je jedan vektor dovoljan da opišemo tačku?
+    \begin{itemize}
+      \item Sama vrednost (2, 3) nam ne znači puno ako ne znamo u odnosu na šta gledamo
+      \item Neophodno je da definišemo centar našeg sistema koordinata
+      \item Tada svaki vektor predstavlja rastojanje od centra koordinatnog sistema po svakoj od osa
+      \item \textbf{Kartezijev koordinatni sistem}
+    \end{itemize}
+  \end{itemize}
+
+  \begin{figure}
+    \begin{subfigure}{4cm}
+      \includegraphics[width=4cm,height=4cm]{images/cartesian_coordinate_system.png}
+    \end{subfigure}
+    \begin{subfigure}{4cm}
+      \includegraphics[width=4cm,height=4cm]{images/cartesian_coordinate_system_3d.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Matrice}
+
+  \begin{itemize}
+    \item Matrica je tabela skalara
+    \item Pogodna za opisivanje matematičkih objekata i njihovih osobina
+    \item Matrica ima $N\times M$ skalara, gde je $N$ broj redova, a $M$ broj kolona
+  \end{itemize}
+  \begin{figure}
+    \begin{subfigure}{3cm}
+      $\begin{bmatrix}
+        1 & 2 & 3\\
+        4 & 5 & 6
+        \end{bmatrix}$
+    \end{subfigure}
+    \begin{subfigure}{3cm}
+      $\begin{bmatrix}
+        -1 & 3 & 1\\
+        4 & 5 & 10
+        \end{bmatrix}$
+    \end{subfigure}
+    \begin{subfigure}{3cm}
+      $\begin{bmatrix}
+        0 & 1.2 & 1\\
+        1 & -2 & 1.1
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Matrice - Osnovne operacije i pojmovi}
+
+  Sabiranje:
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1 & 2 & 3\\
+        4 & 5 & 6
+        \end{bmatrix}$
+      + 
+      $\begin{bmatrix}
+        10 & -3 & 1\\
+        -3 & 2 & 1
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        11 & -1 & 4\\
+        1 & 7 & 7
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+  Oduzimanje:
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1 & 2 & 3\\
+        4 & 5 & 6
+        \end{bmatrix}$
+      - 
+      $\begin{bmatrix}
+        10 & -3 & 1\\
+        -3 & 2 & 1
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        -9 & 5 & 2\\
+        7 & 3 & 5
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+  Množenje skalarom:
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      
+      $
+      3\times
+      \begin{bmatrix}
+        10 & -3 & 1\\
+        -3 & 2 & 1
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        30 & -9 & 3\\
+        -9 & 6 & 3
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Matrice - Osnovne operacije i pojmovi (2)}
+
+  Množenje po elementima:
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1 & 2 & 3\\
+        4 & 5 & 6
+        \end{bmatrix}$
+      * 
+      $\begin{bmatrix}
+        10 & -3 & 1\\
+        -3 & 2 & 1
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        10 & -6 & 3\\
+        -12 & 10 & 6
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+  Nula matrica (neutral za sabiranje i oduzimanje):
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        0 & 0 & 0\\
+        0 & 0 & 0
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Matrice - Osnovne operacije i pojmovi (3)}
+
+  Množenje:
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1 & 2 & 3\\
+        4 & 5 & 6
+        \end{bmatrix}$
+      * 
+      $\begin{bmatrix}
+        1 & 2\\
+        3 & 4\\
+        5 & 6
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        22 & 28\\
+        49 & 64
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+  Postupno:
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1*1 + 2*3 + 3*5 & 1*2 + 2*4 + 3*6\\
+        4*1 + 5*3 + 6*5 & 4*2 + 5*4 + 6*6
+      \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  \begin{itemize}
+    \item Polje \textit{[i, j]} u rezultujućoj matrici se dobija kao skalarni proizvod \textit{i}-tog reda i \textit{j}-te kolone
+    \item Množenjem matrice dimenzije $N \times M$ i $M \times K$ se dobija matrica dimenzije $N \times K$
+    \item Množenje je definisano samo ako se broj kolona leve matrice i broj redova desne matrice poklapa!
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Matrice - Osnovne operacije i pojmovi (4)}
+
+  Množenje matrica nije komutativno (zamenom mesta operanada se ne dobija uvek isti rezultat):
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1 & 2\\
+        3 & 4\\
+        5 & 6
+        \end{bmatrix}$
+      * 
+      $\begin{bmatrix}
+        1 & 2 & 3\\
+        4 & 5 & 6
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        9 & 12 & 15\\
+        19 & 26 & 33\\
+        29 & 40 & 51
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  \begin{itemize}
+    \item Zamenom redosleda operadana u opštem slučaju može da se dobija nedefinisana operacija
+    \item Primer: Množenje matrica dimenzija (10, 2) i (2, 3) je definisano, ali (2, 3) i (10, 2) nije
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Matrice - Transponovane matrice}
+
+  Transponovana matrica $A^{T}$ matrice $A$ se dobija zamenom kolona i redova:
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1 & 2\\
+        3 & 4\\
+        5 & 6
+        \end{bmatrix}^{T}$
+      =
+      $\begin{bmatrix}
+        1 & 2 & 3\\
+        4 & 5 & 6
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1 & 2
+        \end{bmatrix}^{T}$
+      =
+      $\begin{bmatrix}
+        1\\
+        2
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Kvadratne matrice}
+
+  Matrica je kvadratna ako ima jednak broj redova i kolona
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        1 & 2\\
+        3 & 4\\
+        \end{bmatrix}$,
+        $\begin{bmatrix}
+          1 & 2 & 10\\
+          3 & 4 & 30\\
+          5 & 6 & 100
+          \end{bmatrix}$,
+        $\begin{bmatrix}
+          100
+          \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  \begin{itemize}
+    \item Množenjem dve kvadratne matrice iste dimenzije dobijamo kvadratnu matricu iste dimenzije
+    \item Ako permutujemo operadne, množenje je i dalje definisano (ali operacija i dalje nije komutativna)
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Kvadratne matrice - Neutral i inverz za množenje}
+  Za kvadratne matrice postoji neutral za množenje:
+  \begin{figure}
+    \begin{subfigure}{7cm}
+      $I_{2}$ = 
+      $\begin{bmatrix}
+        1 & 0\\
+        0 & 1\\
+        \end{bmatrix}$,
+      \hfill
+      $A \times I = I \times A = A$
+    \end{subfigure}
+  \end{figure}
+
+  \begin{figure}
+    \begin{subfigure}{10cm}
+      $\begin{bmatrix}
+        1 & 2\\
+        3 & 4\\
+        \end{bmatrix}$
+      *
+      $\begin{bmatrix}
+        1 & 0\\
+        0 & 1\\
+        \end{bmatrix}$
+      = 
+      $\begin{bmatrix}
+        1*1 + 2*0 & 1*0 + 2*1\\
+        3*1 + 4*0 & 3*0 + 4*1\\
+        \end{bmatrix}$
+      = 
+      $\begin{bmatrix}
+        1 & 2\\
+        3 & 4\\
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  Takođe može postoji i inverz (ali i ne mora) za kvadratnu matricu:
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      $A \times A^{-1} = A^{-1} \times A = I$
+    \end{subfigure}
+  \end{figure}
+  Matrice koje nemaju inverz su \textbf{singularne}
+
+\end{frame}
+
+\begin{frame}{Vektori kao specijalni slučajevi matrica}
+
+  Vektore možemo da posmatramo kao specijalan slučaj matrica dimenzije $N \times 1$
+  \begin{figure}
+    \begin{subfigure}{10cm}
+      $\begin{bmatrix}
+        1\\
+        3\\
+        \end{bmatrix}$
+      $\begin{bmatrix}
+        -1\\
+        3\\
+        \end{bmatrix}$
+      $\begin{bmatrix}
+        1.2\\
+        3.3\\
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  Možemo i da množimo vektore matricama:
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      $\begin{bmatrix}
+        1 & 1\\
+        -1 & 1\\
+        \end{bmatrix}$
+      *
+      $\begin{bmatrix}
+        1\\
+        3\\
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        4\\
+        2\\
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  U slučaju da vektori predstavljaju tačke, onda množenjem tih vektora matricama vršimo transformaciju tačaka u prostoru
+  
+\end{frame}
+
+\section{Afine transformacije u ravni}
+
+\begin{frame}{Koordinatni sistem slika}
+
+  Koordinatni sistem slike se posmatra od gornjeg levog ugla, gde je $y$ osa orijentisana ka dole:
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/01_01_example_before.png}
+    \end{subfigure}
+    \begin{subfigure}{5cm}
+      \begin{itemize}
+        \item Koordinata $(0, 0)$ u gornjem levom uglu odgovara zelenoj tački (centru koordinatnog sistema slike)
+        \item Tačka u donjem desnom uglu ima koordinatu $(H-1, W-1)$, gde je $H\times W$ rezolucija slike
+      \end{itemize}
+    \end{subfigure}
+  \end{figure}
+  
+\end{frame}
+
+\begin{frame}{Linearne transformacije}
+
+  Linearna funkcija u jednoj dimenzija je funkcija oblika: 
+  \begin{itemize}
+    \item $f(x) = a\cdot x + b$
+    \item Primer: 
+      \begin{itemize}
+        \item $f(x) = 2\cdot x + 3$, 
+        \item $f(4) = 2\cdot 4 + 3 = 11$
+      \end{itemize}
+  \end{itemize}
+  U ravni (2D prostor) možemo da izvršimo transformaciju korišćenjem dve funkcije $f$ i $g$:
+  \begin{itemize}
+    \item $\hat{x} = f(x, y) = a\cdot x + b\cdot y + t_{x}$
+    \item $\hat{y} = g(x, y) = c\cdot x + d\cdot y + t_{y}$
+  \end{itemize}
+  Gde su $x$ i $y$ koordinate pre transformacije $(f, g)$, a $\hat{x}$ i $\hat{y}$ koordinate nakon transformacije.
+
+\end{frame}
+
+\begin{frame}{Linearne transformacije (2)}
+
+  \begin{itemize}
+    \item $\hat{x} = f(x, y) = a\cdot x + b\cdot y + t_{x}$
+    \item $\hat{y} = g(x, y) = c\cdot x + d\cdot y + t_{y}$
+  \end{itemize}
+  Kombinaciju $(f, g)$ možemo kompaktnije da zapišemo pomoću vektora i matrica:
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        a & b\\
+        c & d
+        \end{bmatrix}$
+      *
+      $\begin{bmatrix}
+        x\\
+        y
+        \end{bmatrix}$
+      + 
+      $\begin{bmatrix}
+        t_{x}\\
+        t_{y}
+        \end{bmatrix}$
+      = 
+      $\begin{bmatrix}
+        a\cdot x + b\cdot y + t_{1}\\
+        c\cdot x + d\cdot y + t_{2}
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  Prethodnu formulu nazivamo \textbf{transformacija koordinata tačaka u ravni}, a vektor $(t_{x}, t_{y})$ nazivamo vektorom translacije
+
+\end{frame}
+
+\begin{frame}{Određivanje transformacije na osnovu uparenih tačaka}
+
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        a & b\\
+        c & d
+        \end{bmatrix}$
+      *
+      $\begin{bmatrix}
+        x\\
+        y
+        \end{bmatrix}$
+      + 
+      $\begin{bmatrix}
+        t_{x}\\
+        t_{y}
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  Koliko uparenih tačaka $(x, y)$ i $(\hat{x}, \hat{y})$ nam je neophodno da odredimo komponente transformacije?
+  \begin{itemize}
+    \item Imamo 6 parametara (6 nepoznatih)
+    \item Svaki par uparenih tačaka $(x, y)$ i $(\hat{x}, \hat{y})$ nam daje dve jednačine (jednu po $x$ i jednu po $y$ koordinati)
+    \item To znači da nam je potrebno da imamo 3 para uparenih tačaka
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Translacija}
+
+  Translacija predstavlja pomeranje tačke za vektor T = $(t_{x}, t_{y})$
+  \begin{figure}
+    \begin{subfigure}{8cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        1 & 0\\
+        0 & 1
+        \end{bmatrix}$
+      *
+      $\begin{bmatrix}
+        x\\
+        y
+        \end{bmatrix}$
+      + 
+      $\begin{bmatrix}
+        t_{x}\\
+        t_{y}
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        x + t_{x}\\
+        y + t_{y}
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+  Primer: Translacija slike za vektor $(100, 200)$:
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/01_01_example_before.png}
+    \end{subfigure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/01_02_example_after.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Rotacija}
+
+  Rotacija je malo komplikovanija, ali i dalje možemo da izvedemo formulu pomoću trigonometrije
+  \begin{figure}
+    \begin{subfigure}{3cm}
+      \includegraphics[width=3cm,height=3cm]{images/rotate_points.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{6cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        cos\theta & -sin\theta\\
+        sin\theta & cos\theta
+        \end{bmatrix}$
+      *
+      $\begin{bmatrix}
+        x\\
+        y
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=3cm,height=3cm]{images/02_01_example_before.png}
+    \end{subfigure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=3cm,height=3cm]{images/02_02_example_after.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Rotacija oko tačke}
+
+  \begin{itemize}
+    \item Prethodni primer je rotacija oko koordinatnog početka koji se nalazi u gornjem levom uglu
+    \item Ako želimo da rotiramo oko centra slike, moramo da pomerimo centar u koordinatni sistem,
+          izvršimo transformaciju i onda vratimo centar na prvobitnu poziciju
+  \end{itemize}
+  
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/02_01_example_before.png}
+    \end{subfigure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/02_03_example_after.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Skaliranje}
+
+  \begin{itemize}
+    \item Skaliranje menja dimenzije objekata na sceni.
+    \item Ukoliko je podjednako skaliranje po $x$ i po $y$ osi, onda se ta transformacija zove \textit{homotetija}.
+  \end{itemize}
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}
+        \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        \lambda_{x} & 0\\
+        0 & \lambda_{y}
+        \end{bmatrix}$
+      *
+      $\begin{bmatrix}
+        x\\
+        y
+        \end{bmatrix}$,
+      \hfill
+      $S_{\lambda_{x}, \lambda_{y}} =$
+      $\begin{bmatrix}
+        \lambda_{x} & 0\\
+        0 & \lambda_{y}
+        \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/03_01_example_before.png}
+    \end{subfigure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/03_02_example_after.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Skaliranje oko tačke}
+
+  \begin{itemize}
+    \item Isto kao i rotacija oko tačke, možemo da izvršimo skaliranje u odnosu na center slike umesto gornji levi ćošak
+  \end{itemize}
+  
+  \begin{figure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/03_01_example_before.png}
+    \end{subfigure}
+    \begin{subfigure}{5cm}
+      \includegraphics[width=5cm,height=5cm]{images/03_03_example_after.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Refleksija}
+
+  Varijante:
+  \begin{itemize}
+    \item Refleksija oko $x$ ose
+    \item Refleksija oko $y$ ose
+    \item Refleksija oko koordinatnog početka (kompozicija prethodna dva)
+    \item Refleksija oko tačke (centra slike)
+  \end{itemize}
+  \begin{figure}
+    \begin{subfigure}{9cm}
+      $R_{x} =$
+      $\begin{bmatrix}
+        -1 & 0\\
+        0 & 1
+      \end{bmatrix}$,
+      \hfill
+      $R_{y} =$
+      $\begin{bmatrix}
+        1 & 0\\
+        0 & -1
+      \end{bmatrix}$,
+      \hfill
+      $R_{o} =$
+      $\begin{bmatrix}
+          -1 & 0\\
+          0 & -1
+      \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  
+  \begin{figure}
+    \begin{subfigure}{3cm}
+      \includegraphics[width=3cm,height=3cm]{images/04_02_example_after.png}
+    \end{subfigure}
+    \begin{subfigure}{3cm}
+      \includegraphics[width=3cm,height=3cm]{images/04_03_example_after.png}
+    \end{subfigure}
+    \begin{subfigure}{3cm}
+      \includegraphics[width=3cm,height=3cm]{images/04_04_example_after.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\section{Model kamere kroz rupicu\\(\textit{Pinhole Camera Model})}
+
+\begin{frame}{Projekcija}
+
+  \begin{itemize}
+    \item Projekcija je preslikavanje jednog prostora dimenzije $N$ u prostor dimenzije manje od $N$
+    \item Primer: Preslikavanje objekta iz stvarnog sveta (3D) na sliku (2D)
+  \end{itemize}
+  \begin{figure}
+    \begin{subfigure}{6cm}
+      \includegraphics[width=6cm,height=4cm]{images/projection.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu}
+
+  \begin{figure}
+    \begin{subfigure}{10cm}
+      \includegraphics[width=10cm,height=5cm]{images/pinhole_camera_1.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Formalna reprezentacija}
+
+  \begin{figure}
+    \begin{subfigure}{7cm}
+      \includegraphics[width=7cm,height=3cm]{images/pinhole_camera_2.png}
+    \end{subfigure}
+  \end{figure}
+  \begin{itemize}
+    \item Kamera se nalazi u koordinatnom početku \textit{O} referentnog koordinatnog sistema \textit{(i, j, k)}
+    \item Centar slike \textit{C'} se nalazi na osi \textit{k} na udaljenosti \textit{f} od tačke \textit{O}
+    \item Tačka $P (x, z, y)$ je tačka u realnom svetu koja se projektuje u tačku $P^{\prime} (\hat{x}, \hat{y})$ na slici 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Veza između \textit{P} i \textit{P'}}
+
+  \begin{itemize}
+    \item Neka je tačka $P^{\prime \prime}$ dobijena projekcijom tačke $P$ na osu $k$
+    \item Trouglovi $\triangle P^{\prime}P^{\prime \prime} O$ i $\triangle P^{\prime} C^{\prime} O$ su slični
+    \item Dobijamo sledeću jednakost: $P^{\prime \prime}O : OC^{\prime} = PP^{\prime \prime} : P^{\prime} C^{\prime}$
+    \item Sledeće važi: $P^{\prime \prime}O = z$, $OC^{\prime} = f$, $PP^{\prime \prime} = y$, $P^{\prime} C^{\prime} = \hat{y}$
+    \item Odatle sledi: $z : f = y : \hat{y}$ tj. $\hat{y} = \frac{y}{z} \cdot f$
+    \item Analogno važi i: $\hat{x} = \frac{x}{z} \cdot f$
+  \end{itemize}
+  Ako su nam poznate koordinate tačke P, \textit{C'} i vrednost \textit{f}, onda možemo da odredimo i tačku \textit{P'}
+
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Udaljenost od kamere}
+
+  \begin{itemize}
+    \item $\hat{y} = \frac{y}{z} \cdot f$, $\hat{x} = \frac{x}{z} \cdot f$
+    \item Što je \textit{z} veće (što je objekat u stvarnom svetu dalji) to su koordinate $\hat{x}$ i $\hat{y}$ manje (to je objekat na slici manji)
+  \end{itemize}
+  \begin{figure}
+    \begin{subfigure}{7cm}
+      \includegraphics[width=7cm,height=5cm]{images/pisa.jpg}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Kompaktan zapis preslikavanja}
+
+  Da li možemo da preslikavanje \textit{P} u \textit{P'} napišemo kompaktno preko množenja matrice?
+  \begin{figure}
+    \begin{subfigure}{6cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}
+      \end{bmatrix}$
+      = $\begin{bmatrix}
+        \frac{x}{z} \cdot f\\
+        \frac{y}{z} \cdot f
+      \end{bmatrix}$
+      = M $\times$
+      $\begin{bmatrix}
+        x\\
+        y\\
+        z
+      \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  U ovakvom obliku ne možemo. Možda ako promenimo format nekih tačaka?
+
+
+\end{frame}
+
+\begin{frame}{Homogene koordinate u 2D}
+
+\begin{itemize}
+  \item \textbf{Homogena tačka} koja odgovara tački $(x, y)$ u ravni je $(x, y, 1) \tilde{=} \alpha \cdot (x, y, 1)$ 
+  \item Homogene tačke imaju skup osobina koje ih čine pogodnije za rad u odnosu na tačke Kartezijevog koordinatnog sistema
+  \item U projektivnoj geometriji se uglavnom radi sa homogenim koordinatama, jer na elegantan način predstavljamo
+        vezu između stvarnog sveta i projektivne ravni
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Homogene koordinate u 2D - Osobine}
+
+  \begin{itemize}
+    \item Za fiksirano $\alpha$ geometrijski smisao izraza $\alpha (x, y, 1)$ je skup tačaka na pravi koje se slikaju u istu tačku na 
+          projektivnoj ravni (slici)
+    \item Homogene koordinate možemo jednostavno preslikavamo u ,,obične`` koordinate:
+      \begin{itemize}
+        \item Primer: $A_{h} = (a, b, c)$
+        \item $x = \frac{a}{c}$
+        \item $y = \frac{b}{c}$
+        \item Šta ako je $c = 0$? Tada kažemo da se ta tačka nalazi u beskonačnosti.
+      \end{itemize}
+    \item U Projektivnog geometriji se sve paralelne prave seku u beskonačnosti
+  \end{itemize}
+  \begin{figure}
+    \begin{subfigure}{4cm}
+      \includegraphics[width=4cm,height=4cm]{images/perspective_railway.png}
+    \end{subfigure}
+  \end{figure}
+  
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Osnovni oblik}
+
+  Da li možemo da preslikavanje \textit{P} u \textit{P'} napišemo kompaktno preko množenja matrice?
+  \begin{figure}
+    \begin{subfigure}{6cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}\\
+        1
+      \end{bmatrix}$
+      = $\alpha \cdot
+      \begin{bmatrix}
+        x \cdot f\\
+        y \cdot f\\
+        z
+      \end{bmatrix}$
+      = M $\times$
+      $\begin{bmatrix}
+        x\\
+        y\\
+        z
+      \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  \begin{itemize}
+    \item Vrednost za $\alpha$ je $\frac{1}{z}$ kada uporedimo sa prethodnim jednačinama
+    \item Lako se proverava da M (matrica kamere) ima sledeći oblik
+  \end{itemize}
+
+  \begin{figure}
+    \begin{subfigure}{4cm}
+      M =
+      $\begin{bmatrix}
+        f & 0 & 0\\
+        0 & f & 0\\
+        0 & 0 & 1
+      \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Pikseli}
+
+  \begin{itemize}
+    \item Prethodni oblik matrice kamere ne uzima u obzir da je slika predstavljana pikselima (kvadratićima), 
+    a stvarni svet je u centimetrima
+    \item Neophodno je da uvedemo preslikavanje kao razmera piksela i centimetara
+    \item Ta razmera nije nužno ista po $x$ i po $y$ osi (pikseli ne moraju da budu kvadratići)
+    \item Definišemo te vrednosti kao $r_{x}$ i $r_{y}$
+  \end{itemize}
+
+  \begin{figure}
+      \begin{subfigure}{4cm}
+        M =
+        $\begin{bmatrix}
+          f\cdot r_{x} & 0 & 0\\
+          0 & f\cdot r_{y} & 0\\
+          0 & 0 & 1
+        \end{bmatrix}$
+      \end{subfigure}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Translacija koordinatnog početka slike}
+
+  \begin{itemize}
+    \item Do sada smo pretpostavljali da se koordinatni početak slike nalazi u samom centru slike
+    \item Kao što smo videli, na računarima se uglavnom tako ne predstavljaju slike, već se uzima levi gornji (donji) ćošak
+    \item U odnosu na taj ćošak, sve tačke koje se projektuju na sliku su translirane za vektor $(c_{x}, c_{y})$ do centra \textit{C'}
+    \item Prednost homogenih koordinata je što translaciju možemo kompaktnije da zapišemo u okviru $3 \times 3$ matrice
+  \end{itemize}
+
+  \begin{figure}
+      \begin{subfigure}{4cm}
+        M =
+        $\begin{bmatrix}
+          f\cdot r_{x} & 0 & c_{x}\\
+          0 & f\cdot r_{y} & c_{y}\\
+          0 & 0 & 1
+        \end{bmatrix}$
+      \end{subfigure}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Unutrašnji parametri}
+
+  \begin{figure}
+      \begin{subfigure}{4cm}
+        M =
+        $\begin{bmatrix}
+          f\cdot r_{x} & s & c_{x}\\
+          0 & f\cdot r_{y} & c_{y}\\
+          0 & 0 & 1
+        \end{bmatrix}$
+      \end{subfigure}
+    \end{figure}
+
+  \begin{itemize}
+    \item Parameter $s$ je parameter smicanja (uglavnom teži nula kod kamera)
+    \item Prethodna matrica predstavlja pojednostavljeni oblik unutrašnje parametre kamere (ne uzimamo u obzir distorziju)
+    \item Unutrašnji parametri su dovoljni u situacijama kada se koordinatni sistem kamere i stvarnog sveta poklapaju
+    \item To je veoma jaka pretpostavka i skoro nikada ne važi
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Spoljašnji parametri}
+
+  Preslikavanje koordinatnog sistema stvarnog sveta u koordinatni sistem kamera možemo da izvedemo kompozicijom rotacije 
+  \textit{R} i translacije \textit{T}
+  \begin{itemize}
+    \item Transliramo koordinatni početak kamere u koordinatni početak stvarnog sveta
+    \item Modifikujemo orijentaciju rotacijom
+  \end{itemize}
+
+  \begin{figure}
+    \begin{subfigure}{7cm}
+      \includegraphics[width=7cm,height=5cm]{images/intrinsic_parameters.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Kompozicija transformacija i množenje matrica}
+
+  Kompoziciju transformacija možemo da izvedemo množenjem odgovarajućih
+  matrica transformacija (kompozicija rotacije i translacije):
+  \begin{figure}
+    \begin{subfigure}{10cm}
+      $\begin{bmatrix}
+        1 & 0 & 3\\
+        0 & 1 & 4\\
+        0 & 0 & 1
+      \end{bmatrix}$
+      $\times$
+      $\begin{bmatrix}
+        cos\frac{\pi}{3} & -sin\frac{\pi}{3} & 0\\
+        sin\frac{\pi}{3} & cos\frac{\pi}{3} & 0\\
+        0 & 0 & 1
+      \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        cos\frac{\pi}{3} & -sin\frac{\pi}{3} & 3\\
+        sin\frac{\pi}{3} & cos\frac{\pi}{3} & 4\\
+        0 & 0 & 1
+      \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Spoljašnji parametri (2)}
+
+  \begin{itemize}
+    \item Pretpostavljamo da su nam poznate koordinate $P_{cam}$ kamere u stvarnom koordinatnom sistemu i da nam je poznata
+          rotacija koja dovodi orijentaciju koordinatnog sistema stvarnog sveta u koordinatni sistem kamere
+    \item Primenom translacije -$P_{cam}$ dovodimo koordinatni početak kamere u koordinatni početak stvarnog sveta
+    \item Primenom rotacije nakon toga usklađujemo orijentacije
+    \item Primenom matrice M nakon toga vršimo projekciju na sliku
+  \end{itemize}
+
+  \begin{figure}
+    \begin{subfigure}{3cm}
+      $K = R \times T_{-P_{cam}}$
+    \end{subfigure}
+  \end{figure}
+
+  \begin{itemize}
+    \item Napomena: Ove transformacije su u $3 \times 3$ dimenzije
+    \item Da bi se translacija u 3D svetu svela na množenje matrica moraju da se koriste homogene koordinate za prostor (vektori dužine 4)
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Model kamere kroz rupicu - Konačan oblik matrice kamere}
+
+  Konačan oblik jednačine kamere:
+  \begin{figure}
+    \begin{subfigure}{6cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}\\
+        1
+      \end{bmatrix}$
+      = $M \times R \times T_{-P_{cam}}$
+      $\times$
+      $\begin{bmatrix}
+        x\\
+        y\\
+        z\\
+        1
+      \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  \begin{itemize}
+    \item $M$ je matrica unutrašnjih parametara
+    \item $R$ i $T_{-P_{cam}}$ su spoljašnji parametri
+    \item Matrica $M \times R \times T_{-P_{cam}}$ je matrica dimenzije $3 \times 4$
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Kalibracija kamere}
+
+  \textbf{Kalibracija kamare} je proces dobijanja unutrašnjih i spoljašnjih parametara kamere tj. dobijanja matrice kamere \textit{K}
+  \begin{itemize}
+    \item Matrica \textit{K} ima $3 \times 4 = 12$ parametara (11 ako $p_{34}$ fiksiramo na 1)
+    \item Dekomponovana matrica se sastoji iz $M$ (5 parametra), $R$ (3 parametra) i $T_{-P_{cam}}$ (3 parametra)
+  \end{itemize}
+  \begin{figure}
+    \begin{subfigure}{7cm}
+      $\begin{bmatrix}
+        \hat{x}\\
+        \hat{y}\\
+        1
+      \end{bmatrix}$
+      =
+      $\begin{bmatrix}
+        p_{11} & p_{12} & p_{13} & p_{14}\\
+        p_{21} & p_{22} & p_{23} & p_{24}\\
+        p_{31} & p_{32} & p_{33} & p_{34}\\
+      \end{bmatrix}$
+      $\times$
+      $\begin{bmatrix}
+        x\\
+        y\\
+        z\\
+        1
+      \end{bmatrix}$
+    \end{subfigure}
+  \end{figure}
+  \begin{itemize}
+    \item Za svaki par uparenih tačaka iz stvarnog sveta i slike imamo 2 jednačine
+    \item Ako imamo 11 nepoznatih paramatera, onda nam je potrebno barem 11 jednačina (6 parova) - DLT algoritam
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Kalibracija kamere - Zengova metoda}
+
+  \textbf{Zengova metoda} nam omogućava da izvršimo kalibraciju kamere korišćenjem slike šahovske table
+
+  \begin{itemize}
+    \item Kao osnovu koristi DLT algoritam
+    \item Glavna pretpostavka je da su sve tačke na slici u istoj ravni
+    \item Neophodno je barem 3 slika istih rezolucija iz različitih uglova (što više to bolje)
+  \end{itemize}
+  \begin{figure}
+    \begin{subfigure}{7cm}
+      \includegraphics[width=7cm,height=5cm]{images/zhang_method.png}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Kalibracija kamere - Zengova metoda (2)}
+
+  Zašto šahovska tabla? 
+  \begin{itemize}
+    \item Jednostavno je da se detektuju unutrašnji čoškovi zbog velike kontrasti
+    \item Kao dodatna olakšica za detekciju je unos dimenzije same šahovske (u odnosu na unutrašnje uglove)
+  \end{itemize}
+
+  \begin{figure}
+    \begin{subfigure}{7cm}
+      \includegraphics[width=7cm,height=5cm]{images/findchessboardcorners.jpeg}
+    \end{subfigure}
+  \end{figure}
+
+\end{frame}
+
+\begin{frame}{Literatura}
+
+  \begin{itemize}
+    \item \href{https://web.stanford.edu/class/cs231a/}{Stanford CS231A: Computer Vision, From 3D Reconstruction to Recognition (Winter 2022)}
+    \item Programming Computer Vision with Python, Jan Erik Solem
+    \item Multiple View Geometry in Computer Vision, Richard Hartley, Andrew Zisserman
+    \item Geometrija za informatičare, Tijana Šukilović, Srđan Vukmirović
+  \end{itemize}
+
+\end{frame}
+
+
+\end{document}
